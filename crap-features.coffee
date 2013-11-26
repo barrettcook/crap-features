@@ -11,25 +11,28 @@ options =
 sum = (memo, num) ->
     memo + parseInt(num,10)
 
-features = [
-    /pets/i,
-    /user/i,
-    /api/i,
-    /(alerts|notification|push)/i,
-    /meetme/i,
-    /(luv|amor)/i,
-    /newsfeed/i,
-    /photo/i,
-    /search/i,
-    /email/i,
-]
+nameFilter = (regex) ->
+    (file) ->
+        regex.test(file.$.name)
+
+features =
+    Pets: nameFilter(/pets/i),
+    User: nameFilter(/user/i),
+    API: nameFilter(/api/i),
+    Alerts: nameFilter(/(alerts|notification|push)/i),
+    MeetMe: nameFilter(/meetme/i),
+    Luv: nameFilter(/(luv|amor)/i),
+    Feed: nameFilter(/newsfeed/i),
+    Photos: nameFilter(/photo/i),
+    Search: nameFilter(/search/i),
+    Email: nameFilter(/email/i),
+    Gold: nameFilter(/gold/i),
 
 fs.readFile 'coverage.clover.xml', (err, data) ->
     parseString data, (error, result) ->
         result = result.coverage.project[0].file
-        _.each features, (feature) ->
-            files = _.filter result, (file) ->
-                feature.test(file.$.name)
+        _.each features, (filter, feature) ->
+            files = _.filter result, filter
             methods = _.map files, (file) ->
                 _.filter file.line, (line) ->
                     line.$.type == 'method'
