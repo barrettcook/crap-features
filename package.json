@@ -1,0 +1,14 @@
+{
+  "name": "crap-features",
+  "version": "0.0.1",
+  "author": "Barrett Cook <bcook@tagged.com>",
+  "description": "CRAP feature analysis",
+  "keywords": [
+    "crap"
+  ],
+  "dependencies" : {
+    "underscore": "1.4.4",
+    "xml2js": "*",
+    "fast-stats": "*"
+  }
+}
