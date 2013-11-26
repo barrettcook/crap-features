@@ -32,31 +32,48 @@ fs.readFile 'coverage.clover.xml', (err, data) ->
     parseString data, (error, result) ->
         result = result.coverage.project[0].file
         _.each features, (filter, feature) ->
+            # Filter out only the files we care about
             files = _.filter result, filter
-            methods = _.map files, (file) ->
-                _.filter file.line, (line) ->
-                    line.$.type == 'method'
-            elements = _.map files, (file) ->
-                file.metrics[0].$.elements
-            elements = _.flatten elements
+
+            # Grab the total lines of code for this feature
+            elements = _.chain(files)
+                .map (file) ->
+                    file.metrics[0].$.elements
+                .flatten()
+                .value()
             linesOfCode = _.reduce elements, sum, 0
-            methods = _.flatten methods
-            methods = _.filter methods, (method) ->
-                !!method.$
+
+            # Extract only the methods,
+            #   since they're the only ones with CRAP scores
+            methods = _.chain(files)
+                .map (file) ->
+                    _.filter file.line, (line) ->
+                        line.$.type == 'method'
+                .flatten()
+                .filter (method) ->
+                    !!method.$
+                .value()
+            numMethods = methods.length
+
+            # Grab all of the crap scores
             craps = _.map methods, (method) ->
                 parseInt(method.$.crap,10)
             craps = craps.sort()
+
+            # Bucketize
             distribution = {};
             _.each craps, (crap) ->
                 if !distribution[crap]
                     distribution[crap] = 0
                 distribution[crap]++
+
+            # Bucketize again (using the amazing Stats lib)
             s = new Stats({
                 # buckets: [5, 10, 50, 100, 1000, 1000000]
                 bucket_precision: 1
             })
             s.push(craps)
-            numMethods = methods.length
+
             console.log feature + "\n========="
             console.log 'Files:  ' + files.length
             console.log 'Methods ' + numMethods
